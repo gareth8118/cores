@@ -81,6 +81,19 @@ bool IntervalTimer::beginCycles(ISR newISR, uint32_t newValue) {
   
 }
 
+// ------------------------------------------------------------
+// this function reprograms the timer with a new period while it
+// is running. This value will be the new one loaded into the PIT
+// the next time it restarts.
+// period is specified as number of bus cycles
+// ------------------------------------------------------------
+
+bool IntervalTimer::changeCycles(uint32_t newValue) {
+  if (status != TIMER_PIT) return false;
+  update_PIT(newValue);
+  return true;
+}
+
 
 // ------------------------------------------------------------
 // stop the timer if it's currently running, using its status
@@ -171,7 +184,12 @@ void IntervalTimer::start_PIT(uint32_t newValue) {
 
 }
 
-
+// ------------------------------------------------------------
+// update the PIT load value register only
+// ------------------------------------------------------------
+void IntervalTimer::update_PIT(uint32_t newValue) {
+  *PIT_LDVAL = newValue;
+}
 
 // ------------------------------------------------------------
 // stops an active PIT by disabling its interrupt, writing to

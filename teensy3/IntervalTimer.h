@@ -45,6 +45,7 @@ class IntervalTimer {
     static ISR PIT_ISR[NUM_PIT];
     bool allocate_PIT(uint32_t newValue);
     void start_PIT(uint32_t newValue);
+    void update_PIT(uint32_t newValue);
     void stop_PIT();
     bool status;
     uint8_t PIT_id;
@@ -54,6 +55,7 @@ class IntervalTimer {
     uint8_t nvic_priority;
     ISR myISR;
     bool beginCycles(ISR newISR, uint32_t cycles);
+    bool changeCycles(uint32_t cycles);
   public:
     IntervalTimer() { status = TIMER_OFF; nvic_priority = 128; }
     ~IntervalTimer() { end(); }
@@ -80,6 +82,30 @@ class IntervalTimer {
     }
     bool begin(ISR newISR, double newPeriod) {
 	return begin(newISR, (float)newPeriod);
+    }
+    bool change(unsigned int newPeriod) {
+        if (newPeriod == 0 || newPeriod > MAX_PERIOD) return false;
+        uint32_t newValue = (F_BUS / 1000000) * newPeriod - 1;
+        return changeCycles(newValue);
+    }
+    bool change(int newPeriod) {
+        if (newPeriod < 0) return false;
+        return change((unsigned int) newPeriod);
+    }
+    bool change(unsigned long newPeriod) {
+        return change((unsigned int) newPeriod);
+    }
+    bool change(long newPeriod) {
+        return change((int) newPeriod);
+    }
+    bool change(float newPeriod) {
+        if (newPeriod <= 0 || newPeriod > MAX_PERIOD) return false;
+        uint32_t newValue = (float)(F_BUS / 1000000) * newPeriod - 0.5;
+        if (newValue < 40) return false;
+        return changeCycles(newValue);
+    }
+    bool change(double newPeriod) {
+        return change((float) newPeriod);
     }
     void end();
     void priority(uint8_t n) {
